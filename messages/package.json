@@ -5,7 +5,16 @@
   "main": "index.js",
   "dependencies": {
     "botbuilder": "^3.13.1",
-    "botbuilder-azure": "^3.0.4"
+    "botbuilder-azure": "^3.0.4",
+    "applicationinsights": "latest",
+    "bluebird": "latest",
+    "fs": "latest",
+    "http": "latest",
+    "microsoft-adaptivecards": "latest",
+    "request": "latest",
+    "request-promise": "latest",
+    "util": "latest",
+    "path": "latest"
   },
   "devDependencies": {
     "restify": "^5.0.0"
