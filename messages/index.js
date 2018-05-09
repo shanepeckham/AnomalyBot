@@ -39,8 +39,8 @@ bot.dialog('/', [
     // function (session) {
     //     builder.Prompts.text(session, "Hello... Which shop are you in?");
     // },
-    function (session, results) {
-        session.userData.shop = results.response;
+    function (session) {
+    //    session.userData.shop = results.response;
         builder.Prompts.attachment(session, "Please upload your reference state - click the image icon below this text");
     },
 
