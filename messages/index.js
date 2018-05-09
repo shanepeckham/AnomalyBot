@@ -8,7 +8,6 @@ var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
 var path = require('path');
 var request = require('request');
-var requestP = require('request-promise');
 var customVisionKey = process.env.customVisionKey;
 var customVisionAPI = process.env.customVisionAPI;
 var referenceState;
