@@ -7,6 +7,12 @@ https://aka.ms/abs-node-waterfall
 var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
 var path = require('path');
+var request = require('request');
+var requestP = require('request-promise');
+var customVisionKey = process.env.customVisionKey;
+var customVisionAPI = process.env.customVisionAPI;
+var referenceState;
+var actualState;
 
 var useEmulator = (process.env.NODE_ENV == 'development');
 
@@ -31,23 +37,86 @@ bot.localePath(path.join(__dirname, './locale'));
 bot.set('storage', tableStorage);
 
 bot.dialog('/', [
+    // function (session) {
+    //     builder.Prompts.text(session, "Hello... Which shop are you in?");
+    // },
+    function (session, results) {
+        session.userData.shop = results.response;
+        builder.Prompts.attachment(session, "Please upload your reference state - click the image icon below this text");
+    },
+
+    function (session, results) {
+        var msg = session.message;
+        var attachment = msg.attachments[0];
+        session.send('Thank you, analysing...');
+
+        // Now we send the request
+        // Set the headers
+        var headers = {
+            'Prediction-Key': customVisionKey,
+            'Content-Type': 'application/json'
+        };
+        // Configure the request
+
+        var options = {
+            url: customVisionAPI,
+            method: 'POST',
+            headers: headers,
+            json: { 'Url': attachment.contentUrl }
+        };
+
+        //     session.send('sending to ' + customVisionAPI + " | " + attachment.contentUrl + " | " + customVisionKey);
+        request(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                referenceState = body.Predictions[0].Tag;
+                session.send('Your reference configuration is: ' + body.Predictions[0].Tag + " (Probability " + body.Predictions[0].Probability + ")");
+
+                builder.Prompts.attachment(session, "Now upload the actual state");
+            }
+        });
+    },
+
+    function (session, results) {
+        var msg = session.message;
+        var attachment = msg.attachments[0];
+        session.send('Thank you, analysing again...');
+
+        // Now we send the request
+        // Set the headers
+        var headers = {
+            'Prediction-Key': customVisionKey,
+            'Content-Type': 'application/json'
+        };
+        // Configure the request
+
+        var options = {
+            url: customVisionAPI,
+            method: 'POST',
+            headers: headers,
+            json: { 'Url': attachment.contentUrl }
+        };
+
+        request(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                actualState = body.Predictions[0].Tag;
+                session.send('Your actual state is: ' + body.Predictions[0].Tag + " (Probability " + body.Predictions[0].Probability + ")");
+
+                if (referenceState == actualState) {
+                    session.send('The desired state matches the reference state ' + referenceState);
+                }
+                else {
+                    session.send('Anomaly detected between desired and actual state - manual check required')
+                }
+            }
+        });
+
+
+        session.endDialogWithResult(results);
+    },
     function (session) {
-        builder.Prompts.text(session, "Hello... What's your name?");
-    },
-    function (session, results) {
-        session.userData.name = results.response;
-        builder.Prompts.number(session, "Hi " + results.response + ", How many berars have you been coding?"); 
-    },
-    function (session, results) {
-        session.userData.coding = results.response;
-        builder.Prompts.choice(session, "What language do you code Node using?", ["JavaScript", "CoffeeScript", "TypeScript"]);
-    },
-    function (session, results) {
-        session.userData.language = results.response.entity;
-        session.send("Got it... " + session.userData.name + 
-                    " you've been programming for " + session.userData.coding + 
-                    " years and use " + session.userData.language + ".");
+        builder.Prompts.text(session, "Hello... Which shop are you in?");
     }
+
 ]);
 
 if (useEmulator) {
