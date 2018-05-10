@@ -41,7 +41,7 @@ bot.dialog('/', [
     // },
     function (session) {
     //    session.userData.shop = results.response;
-        builder.Prompts.attachment(session, "Please upload your reference state - click the image icon below this text");
+        builder.Prompts.attachment(session, "Please upload your reference state picture - click the image icon below this text");
     },
 
     function (session, results) {
